@@ -1,0 +1,26 @@
+{
+  "name": "retail-inventory-management",
+  "version": "1.0.0",
+  "description": "Retail Store Inventory Management System with Express, SQLite, and Vanilla JS frontend",
+  "main": "backend/src/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node backend/src/server.js",
+    "test": "node --test tests/**/*.test.js",
+    "test:unit": "node --test tests/unit/*.test.js",
+    "test:integration": "node --test tests/integration/*.test.js"
+  },
+  "keywords": [
+    "inventory",
+    "retail",
+    "express",
+    "sqlite",
+    "stock-management"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  }
+}

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Gestão de Estoque — Loja Varejo</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <!-- Cabeçalho / Navegação -->
+  <header class="app-header">
+    <div class="container header-container">
+      <div class="brand">
+        <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+          <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+          <line x1="12" y1="22.08" x2="12" y2="12"></line>
+        </svg>
+        <div>
+          <h1>StockMaster Varejo</h1>
+          <p class="subtitle">Gestão de Estoque e Loja</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="btn-refresh" class="btn btn-secondary" title="Atualizar dados de estoque">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+          </svg>
+          Atualizar
+        </button>
+        <button id="btn-open-create-modal" class="btn btn-primary">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Novo Produto
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Conteúdo Principal -->
+  <main class="container main-content">
+    <!-- Indicadores Principais (KPIs) -->
+    <section class="dashboard-kpis">
+      <div class="kpi-card">
+        <div class="kpi-icon total-products-icon">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+          </svg>
+        </div>
+        <div class="kpi-details">
+          <span class="kpi-label">Total de Produtos</span>
+          <span class="kpi-value" id="kpi-total-products">0</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon total-stock-icon">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+            <polyline points="2 17 12 22 22 17"></polyline>
+            <polyline points="2 12 12 17 22 12"></polyline>
+          </svg>
+        </div>
+        <div class="kpi-details">
+          <span class="kpi-label">Total de Unidades em Estoque</span>
+          <span class="kpi-value" id="kpi-total-units">0</span>
+        </div>
+      </div>
+
+      <div class="kpi-card" id="kpi-card-low-stock">
+        <div class="kpi-icon low-stock-icon">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+        </div>
+        <div class="kpi-details">
+          <span class="kpi-label">Alertas de Estoque Baixo</span>
+          <span class="kpi-value" id="kpi-low-stock">0</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon total-value-icon">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="1" x2="12" y2="23"></line>
+            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+          </svg>
+        </div>
+        <div class="kpi-details">
+          <span class="kpi-label">Valor do Estoque</span>
+          <span class="kpi-value" id="kpi-total-value">R$ 0,00</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Barra de Ferramentas: Busca e Filtros -->
+    <section class="toolbar">
+      <div class="search-box">
+        <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="search-input" placeholder="Buscar produtos por nome..." autocomplete="off">
+        <button id="btn-clear-search" class="btn-icon" title="Limpar busca" style="display: none;">&times;</button>
+      </div>
+
+      <div class="filter-controls">
+        <label class="filter-toggle">
+          <input type="checkbox" id="filter-low-stock">
+          <span class="toggle-slider"></span>
+          <span class="toggle-text">Apenas estoque baixo (&le; 10)</span>
+        </label>
+      </div>
+    </section>
+
+    <!-- Tabela de Produtos -->
+    <section class="table-card">
+      <div class="table-header-info">
+        <h2 id="table-heading">Produtos Cadastrados</h2>
+        <span class="product-count" id="product-count-badge">0 itens</span>
+      </div>
+
+      <div class="table-responsive">
+        <table class="inventory-table">
+          <thead>
+            <tr>
+              <th style="width: 60px;">ID</th>
+              <th>Nome do Produto</th>
+              <th style="width: 130px;">Preço</th>
+              <th style="width: 140px;">Status</th>
+              <th style="width: 110px;">Qtd</th>
+              <th style="width: 270px; text-align: right;">Ações de Estoque e Produto</th>
+            </tr>
+          </thead>
+          <tbody id="product-tbody">
+            <tr>
+              <td colspan="6" class="empty-state">Carregando produtos...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- ================= MODAIS ================= -->
+
+  <!-- Modal 1: Criar / Editar Produto -->
+  <div class="modal-overlay" id="product-modal" aria-hidden="true">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="product-modal-title">Cadastrar Novo Produto</h3>
+        <button class="modal-close" data-close="product-modal">&times;</button>
+      </div>
+      <form id="product-form">
+        <input type="hidden" id="product-form-id" value="">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="product-name-input">Nome do Produto <span class="required">*</span></label>
+            <input type="text" id="product-name-input" placeholder="Ex: Teclado Mecânico" required maxlength="200">
+            <small class="form-help">Informe o nome do item no catálogo.</small>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="product-price-input">Preço (R$) <span class="required">*</span></label>
+              <input type="number" id="product-price-input" placeholder="50.00" min="0" step="0.01" required>
+              <small class="form-help">Preço de venda unitário.</small>
+            </div>
+
+            <div class="form-group" id="initial-quantity-group">
+              <label for="product-quantity-input">Estoque Inicial <span class="required">*</span></label>
+              <input type="number" id="product-quantity-input" placeholder="200" min="0" step="1" value="0">
+              <small class="form-help">Quantidade inicial em estoque.</small>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close="product-modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-product">Salvar Produto</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Movimentação de Estoque (Entrada ou Saída) -->
+  <div class="modal-overlay" id="stock-modal" aria-hidden="true">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="stock-modal-title">Entrada de Estoque</h3>
+        <button class="modal-close" data-close="stock-modal">&times;</button>
+      </div>
+      <form id="stock-form">
+        <input type="hidden" id="stock-form-product-id" value="">
+        <input type="hidden" id="stock-form-action-type" value="add"> <!-- 'add' ou 'remove' -->
+
+        <div class="modal-body">
+          <!-- Resumo de Produto e Estoque Atual -->
+          <div class="stock-info-box">
+            <div class="stock-info-row">
+              <span class="stock-info-label">Produto:</span>
+              <strong id="stock-modal-product-name">-</strong>
+            </div>
+            <div class="stock-info-row">
+              <span class="stock-info-label">Estoque Atual:</span>
+              <span class="stock-badge" id="stock-modal-current-qty">0 unidades</span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="stock-quantity-input" id="stock-quantity-label">Quantidade a Adicionar <span class="required">*</span></label>
+            <input type="number" id="stock-quantity-input" placeholder="Ex: 20" min="1" step="1" required>
+            <small class="form-help" id="stock-quantity-help">A quantidade deve ser um número inteiro maior que 0.</small>
+          </div>
+
+          <div class="form-group">
+            <label for="stock-reason-input">Motivo / Observação (opcional)</label>
+            <input type="text" id="stock-reason-input" placeholder="Ex: Compra de 20 unidades adicionais" maxlength="255">
+          </div>
+
+          <div class="stock-preview-box" id="stock-preview">
+            Novo estoque previsto: <strong id="stock-preview-new-qty">-</strong>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close="stock-modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btn-submit-stock">Confirmar Operação</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 3: Histórico de Movimentações / Auditoria -->
+  <div class="modal-overlay" id="history-modal" aria-hidden="true">
+    <div class="modal-box modal-lg">
+      <div class="modal-header">
+        <div>
+          <h3>Auditoria de Movimentações de Estoque</h3>
+          <p class="subtitle" id="history-modal-product-name">-</p>
+        </div>
+        <button class="modal-close" data-close="history-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="table-responsive">
+          <table class="inventory-table">
+            <thead>
+              <tr>
+                <th>Data e Hora</th>
+                <th>Tipo</th>
+                <th>Variação</th>
+                <th>Estoque Antes &rarr; Depois</th>
+                <th>Motivo / Referência</th>
+              </tr>
+            </thead>
+            <tbody id="history-tbody">
+              <tr>
+                <td colspan="5" class="empty-state">Carregando histórico...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-close="history-modal">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notificações Toast -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <!-- Scripts -->
+  <script src="js/app.js"></script>
+</body>
+</html>
