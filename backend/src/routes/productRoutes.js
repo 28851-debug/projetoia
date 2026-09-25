@@ -7,17 +7,16 @@ function createRouter({ productService, inventoryService } = {}) {
   const productController = new ProductController(productService);
   const inventoryController = new InventoryController(inventoryService);
 
-  // Dashboard stats
   router.get('/dashboard/stats', inventoryController.getStats);
 
-  // Product CRUD
   router.get('/products', productController.list);
   router.post('/products', productController.create);
   router.get('/products/:id', productController.getById);
   router.put('/products/:id', productController.update);
   router.delete('/products/:id', productController.delete);
 
-  // Stock operations
+  // PATCH is the canonical stock-increment operation. POST is retained for compatibility.
+  router.patch('/products/:id/stock', inventoryController.addStock);
   router.post('/products/:id/stock', inventoryController.addStock);
   router.post('/products/:id/stock/remove', inventoryController.removeStock);
   router.get('/products/:id/movements', inventoryController.getMovements);

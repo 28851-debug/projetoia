@@ -1,359 +1,112 @@
-# Retail Store Inventory Management System — API Documentation
+# Inventory API
 
-This document describes all REST API endpoints provided by the backend service. All endpoints communicate using JSON and standard HTTP status codes.
+The backend exposes the required REST API both at `http://localhost:3000/products` and, for compatibility with the frontend and previous clients, under the `/api` prefix (`http://localhost:3000/api/products`). All responses are JSON and CORS is enabled.
 
-Base URL: `http://localhost:3000/api`
-
----
-
-## 1. List Products
-
-Retrieve all products with optional query filtering for search keywords, price limits, and low-stock thresholds.
-
-- **Method**: `GET`
-- **URL**: `/api/products`
-- **Purpose**: Fetch product list matching search and filter criteria.
-
-### Query Parameters
-| Parameter | Type | Required | Description |
-|---|---|---|---|
-| `search` | String | No | Search query matching product name (case-insensitive substring) |
-| `minPrice` | Number | No | Minimum price in currency units (e.g. `10.00`) |
-| `maxPrice` | Number | No | Maximum price in currency units (e.g. `100.00`) |
-| `lowStockOnly`| Boolean| No | If `'true'` or `'1'`, returns only products with quantity <= low stock threshold (10) |
-
-### Successful Response
-- **Status Code**: `200 OK`
-- **Body**: Array of product objects.
-
-```json
-[
-  {
-    "id": 1,
-    "name": "Keyboard",
-    "price": 50.00,
-    "quantity": 200,
-    "isLowStock": false,
-    "createdAt": "2026-09-22T15:00:00.000Z",
-    "updatedAt": "2026-09-22T15:00:00.000Z"
-  }
-]
-```
-
----
-
-## 2. Get Product by ID
-
-Retrieve a single product by its unique identifier.
-
-- **Method**: `GET`
-- **URL**: `/api/products/:id`
-- **Purpose**: Fetch details of an individual product.
-
-### URL Parameters
-| Parameter | Type | Description |
-|---|---|---|
-| `id` | Integer | Product ID |
-
-### Successful Response
-- **Status Code**: `200 OK`
-- **Body**:
+## Product object
 
 ```json
 {
   "id": 1,
   "name": "Keyboard",
-  "price": 50.00,
+  "price": 50,
   "quantity": 200,
-  "isLowStock": false,
-  "createdAt": "2026-09-22T15:00:00.000Z",
-  "updatedAt": "2026-09-22T15:00:00.000Z"
+  "createdAt": "2026-09-25T12:00:00.000Z",
+  "updatedAt": "2026-09-25T12:00:00.000Z"
 }
 ```
 
-### Error Responses
-- **400 Bad Request**: If ID is not a positive integer.
-  ```json
-  { "error": "Invalid product ID" }
-  ```
-- **404 Not Found**: If product does not exist.
-  ```json
-  { "error": "Product not found" }
-  ```
+Prices must be greater than zero. Product quantity accepts zero or any positive integer. Stock increments accept only positive integers and always calculate `new quantity = current quantity + added quantity`.
 
----
+## Endpoints
 
-## 3. Create Product
+### GET `/products`
+Lists all products. Optional query parameters: `search`, `minPrice`, `maxPrice`, and `lowStockOnly=true`.
 
-Create a new product in the store catalog with an initial stock quantity.
-
-- **Method**: `POST`
-- **URL**: `/api/products`
-- **Purpose**: Add a new product to the catalog.
-
-### Request Body
-```json
-{
-  "name": "Keyboard",
-  "price": 50.00,
-  "quantity": 200
-}
+```bash
+curl http://localhost:3000/products
 ```
 
-### Fields
-| Field | Type | Required | Validation Rules |
-|---|---|---|---|
-| `name` | String | Yes | Non-empty string after trimming whitespace. Max 200 characters. |
-| `price` | Number | Yes | Numeric, non-negative (>= 0). Up to 2 decimal places. |
-| `quantity` | Integer | Yes | Non-negative integer (>= 0). |
+Success: `200 OK`, an array of product objects.
 
-### Successful Response
-- **Status Code**: `201 Created`
-- **Body**:
+### GET `/products/:id`
+Retrieves one product.
 
-```json
-{
-  "id": 1,
-  "name": "Keyboard",
-  "price": 50.00,
-  "quantity": 200,
-  "createdAt": "2026-09-22T15:00:00.000Z",
-  "updatedAt": "2026-09-22T15:00:00.000Z"
-}
+```bash
+curl http://localhost:3000/products/1
 ```
 
-### Error Responses
-- **400 Bad Request**: Validation failure.
-  ```json
-  { "error": "Product name is required and cannot be empty" }
-  ```
-  ```json
-  { "error": "Price must be a non-negative number" }
-  ```
-  ```json
-  { "error": "Quantity must be a non-negative integer" }
-  ```
+Success: `200 OK`. Invalid IDs return `400`; missing products return `404` with `{ "error": "Product not found" }`.
 
----
+### POST `/products`
+Creates a product.
 
-## 4. Update Product
+Request body:
 
-Update an existing product's metadata (name and price). Stock adjustments must be performed through the dedicated stock endpoints.
-
-- **Method**: `PUT`
-- **URL**: `/api/products/:id`
-- **Purpose**: Update a product's name and price.
-
-### Request Body
 ```json
-{
-  "name": "Mechanical Keyboard RGB",
-  "price": 65.50
-}
+{ "name": "Keyboard", "price": 50.00, "quantity": 200 }
 ```
 
-### Fields
-| Field | Type | Required | Validation Rules |
-|---|---|---|---|
-| `name` | String | No | If provided, non-empty trimmed string. |
-| `price` | Number | No | If provided, non-negative number. |
-
-### Successful Response
-- **Status Code**: `200 OK`
-- **Body**: Updated product object.
-
-### Error Responses
-- **400 Bad Request**: Invalid fields or no fields provided to update.
-- **404 Not Found**: Product not found.
-
----
-
-## 5. Delete Product
-
-Delete a product and its associated stock movement records.
-
-- **Method**: `DELETE`
-- **URL**: `/api/products/:id`
-- **Purpose**: Remove a product from the catalog.
-
-### Successful Response
-- **Status Code**: `200 OK`
-- **Body**:
-```json
-{ "message": "Product successfully deleted" }
+```bash
+curl -X POST http://localhost:3000/products -H "Content-Type: application/json" -d '{"name":"Keyboard","price":50,"quantity":200}'
 ```
 
-### Error Responses
-- **404 Not Found**: Product not found.
+Success: `201 Created`, the created product. Validation errors return `400`.
 
----
+### PUT `/products/:id`
+Updates the product name and/or price. Quantity is deliberately not accepted here; use the stock endpoint for increments.
 
-## 6. Add Stock
+Request body:
 
-Add inventory units to an existing product. Backend atomically recalculates `newQuantity = currentQuantity + quantityToAdd` and logs the transaction.
-
-- **Method**: `POST`
-- **URL**: `/api/products/:id/stock`
-- **Purpose**: Safely increase stock inventory.
-
-### Request Body
 ```json
-{
-  "quantity": 20,
-  "reason": "Restocked from warehouse supplier"
-}
+{ "name": "Mechanical Keyboard", "price": 65.50 }
 ```
 
-### Fields
-| Field | Type | Required | Validation Rules |
-|---|---|---|---|
-| `quantity` | Integer | Yes | Integer strictly greater than 0. |
-| `reason` | String | No | Optional description of the restocking reason. |
-
-### Successful Response
-- **Status Code**: `200 OK`
-- **Body**:
-```json
-{
-  "id": 1,
-  "name": "Keyboard",
-  "price": 50.00,
-  "quantity": 220,
-  "previousQuantity": 200,
-  "added": 20,
-  "updatedAt": "2026-09-22T15:05:00.000Z"
-}
+```bash
+curl -X PUT http://localhost:3000/products/1 -H "Content-Type: application/json" -d '{"name":"Mechanical Keyboard","price":65.5}'
 ```
 
-### Error Responses
-- **400 Bad Request**: If quantity is missing, not an integer, or <= 0.
-  ```json
-  { "error": "Quantity to add must be an integer greater than zero" }
-  ```
-- **404 Not Found**:
-  ```json
-  { "error": "Product not found" }
-  ```
+Success: `200 OK`; validation errors return `400`; missing products return `404`.
 
----
+### DELETE `/products/:id`
+Removes a product and its movement history.
 
-## 7. Remove Stock
-
-Deduct inventory units when sold or damaged. Backend verifies stock availability and guarantees the inventory never falls below zero.
-
-- **Method**: `POST`
-- **URL**: `/api/products/:id/stock/remove`
-- **Purpose**: Safely decrease stock inventory.
-
-### Request Body
-```json
-{
-  "quantity": 5,
-  "reason": "Customer sale order #1042"
-}
+```bash
+curl -X DELETE http://localhost:3000/products/1
 ```
 
-### Fields
-| Field | Type | Required | Validation Rules |
-|---|---|---|---|
-| `quantity` | Integer | Yes | Integer strictly greater than 0. |
-| `reason` | String | No | Optional note/reason for removal. |
+Success: `200 OK`, `{ "success": true, "message": "Product successfully deleted" }`. Missing products return `404`.
 
-### Successful Response
-- **Status Code**: `200 OK`
-- **Body**:
+### PATCH `/products/:id/stock`
+Adds stock to the existing quantity. This is an increment and never a replacement. The legacy `POST` method for this same path is also supported.
+
+Request body:
+
 ```json
-{
-  "id": 1,
-  "name": "Keyboard",
-  "price": 50.00,
-  "quantity": 215,
-  "previousQuantity": 220,
-  "removed": 5,
-  "updatedAt": "2026-09-22T15:10:00.000Z"
-}
+{ "quantity": 20, "reason": "New purchase" }
 ```
 
-### Error Responses
-- **400 Bad Request**:
-  ```json
-  { "error": "Quantity to remove must be an integer greater than zero" }
-  ```
-- **404 Not Found**:
-  ```json
-  { "error": "Product not found" }
-  ```
-- **409 Conflict**: When requested removal exceeds current stock.
-  ```json
-  { "error": "Cannot remove 300 units. Only 205 units are currently available." }
-  ```
-
----
-
-## 8. View Stock Movement History
-
-Retrieve all historical additions, removals, and initial stock events for a specific product.
-
-- **Method**: `GET`
-- **URL**: `/api/products/:id/movements`
-- **Purpose**: Inspect audit trail of inventory operations.
-
-### Successful Response
-- **Status Code**: `200 OK`
-- **Body**:
-```json
-[
-  {
-    "id": 3,
-    "productId": 1,
-    "type": "REMOVE",
-    "quantity": 5,
-    "previousQuantity": 220,
-    "newQuantity": 215,
-    "reason": "Customer sale order #1042",
-    "createdAt": "2026-09-22T15:10:00.000Z"
-  },
-  {
-    "id": 2,
-    "productId": 1,
-    "type": "ADD",
-    "quantity": 20,
-    "previousQuantity": 200,
-    "newQuantity": 220,
-    "reason": "Restocked from warehouse supplier",
-    "createdAt": "2026-09-22T15:05:00.000Z"
-  },
-  {
-    "id": 1,
-    "productId": 1,
-    "type": "INITIAL",
-    "quantity": 200,
-    "previousQuantity": 0,
-    "newQuantity": 200,
-    "reason": "Initial inventory on product creation",
-    "createdAt": "2026-09-22T15:00:00.000Z"
-  }
-]
+```bash
+curl -X PATCH http://localhost:3000/products/1/stock -H "Content-Type: application/json" -d '{"quantity":20,"reason":"New purchase"}'
 ```
 
----
+Success: `200 OK`:
 
-## 9. Dashboard Statistics
-
-Retrieve key operational metrics for the inventory dashboard.
-
-- **Method**: `GET`
-- **URL**: `/api/dashboard/stats`
-- **Purpose**: Fetch summary counters for dashboard cards.
-
-### Successful Response
-- **Status Code**: `200 OK`
-- **Body**:
 ```json
-{
-  "totalProducts": 1,
-  "totalStockUnits": 215,
-  "lowStockCount": 0,
-  "totalInventoryValue": 10750.00
-}
+{ "id": 1, "name": "Keyboard", "price": 50, "quantity": 220, "previousQuantity": 200, "added": 20, "updatedAt": "2026-09-25T12:05:00.000Z" }
 ```
+
+Zero, negative, fractional, or missing quantities return `400`. Missing products return `404`.
+
+## Error format
+
+All handled errors use `{ "error": "clear message" }`. Common statuses are `400 Bad Request`, `404 Not Found`, and `409 Conflict` for an attempted stock removal greater than the available quantity. The frontend uses the add-stock endpoint and does not replace stock totals.
+
+## Automated test record
+
+The repository includes native Node.js integration and unit tests covering product CRUD, validation, the `200 + 20 = 220` increment sequence, invalid stock quantities, stock removal safeguards, movement history, and dashboard totals. Run them with:
+
+```bash
+npm test
+```
+
+The existing integration suite records successful HTTP status and response assertions for the complete CRUD and stock workflows; the canonical increment endpoint is additionally available as `PATCH`.
